@@ -1,0 +1,38 @@
+name: Run Postman Collection with Newman
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  newman-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Newman tests
+        run: npm run test-newman
+
+      - name: Upload Newman HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: index.html
+
+      - name: Deploy report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: newman-report
+          publish_dir: .
+          keep_files: false
