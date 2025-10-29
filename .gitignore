@@ -1,3 +1,4 @@
 /node_modules
 /newman
 index.html
+package-lock.json
