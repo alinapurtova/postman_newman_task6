@@ -1,0 +1,1429 @@
+{
+	"info": {
+		"_postman_id": "e803a9cb-ef55-4614-9f04-e1c0e7d67dec",
+		"name": "store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38445449"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "List products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Content-Type header is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is an array\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"array\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"All product prices are positive\", () => {\r",
+									"    const products = pm.response.json();\r",
+									"    for (const { price } of products) {\r",
+									"        pm.expect(price).to.be.above(0);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each product has valid data types\", () => {\r",
+									"    const products = pm.response.json();\r",
+									"    for (const { id, name, price, sku, description } of products) {\r",
+									"        pm.expect(id).to.be.a(\"number\");\r",
+									"        pm.expect(name).to.be.a(\"string\");\r",
+									"        pm.expect(price).to.be.a(\"number\");\r",
+									"        pm.expect(sku).to.be.a(\"number\");\r",
+									"        pm.expect(description).to.be.a(\"string\");\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List products (pagination)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const expectedFields = [\"id\", \"name\", \"price\", \"sku\", \"description\"];\r",
+									"const products = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Pagination returns 2 products\", () => {\r",
+									"    pm.expect(products.length).to.eql(2);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"All products contain expected fields\", () => {\r",
+									"    for (const product of products) {\r",
+									"        for (const field of expectedFields) {\r",
+									"            pm.expect(product).to.have.property(field);\r",
+									"        }\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products?page=1&pageSize=2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is an object\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Product contains required fields\", () => {\r",
+									"    const product = pm.response.json();\r",
+									"    pm.expect(product).to.have.all.keys(\"id\", \"name\", \"price\", \"sku\", \"description\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Returned ID matches requested ID\", () => {\r",
+									"    const urlPath = pm.request.url.path;\r",
+									"    const requestedId = Number(pm.request.url.variables.get(\"id\") || urlPath[urlPath.length - 1]);\r",
+									"    const { id: responseId } = pm.response.json();\r",
+									"    pm.expect(responseId).to.eql(requestedId);\r",
+									"});\r",
+									"\r",
+									"const schema = {\r",
+									"    type: \"object\",\r",
+									"    required: [\"id\", \"name\", \"price\", \"sku\", \"description\"],\r",
+									"    properties: {\r",
+									"        id: { type: \"number\" },\r",
+									"        name: { type: \"string\" },\r",
+									"        price: { type: \"number\" },\r",
+									"        sku: { type: \"number\" },\r",
+									"        description: { type: \"string\" }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"pm.test(\"Response matches product schema\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get product by ID (negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 4xx\", () => {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]); \r",
+									"});\r",
+									"pm.test(\"Returns empty object for non-existent product\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(0);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/333",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"333"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Response time is less than 100ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(100);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"const jsonData = pm.response.json();\r",
+									"pm.test(\"Response contains correct data fields\", () => {      \r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.name).to.be.a(\"string\");\r",
+									"    pm.expect(jsonData.price).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.sku).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.description).to.be.an(\"string\");       \r",
+									"});\r",
+									"pm.test(\"Created product has unique ID\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.exist;\r",
+									"    pm.expect(jsonData.id).to.be.above(0);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"orange\",\r\n    \"price\": 8,\r\n    \"sku\": 123321123,\r\n    \"description\": \"wouh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Response is an object\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"});\r",
+									"pm.test(\"Product data is updated correctly\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.name).to.eql(\"banana\");\r",
+									"    pm.expect(jsonData.price).to.eql(155);\r",
+									"    pm.expect(jsonData.sku).to.eql(123321123);\r",
+									"    pm.expect(jsonData.description).to.eql(\"changed description\");\r",
+									"});\r",
+									"const schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"required\": [\"id\", \"name\", \"price\", \"sku\", \"description\"],\r",
+									"    \"properties\": {\r",
+									"        \"id\": { \"type\": \"number\" },\r",
+									"        \"name\": { \"type\": \"string\" },\r",
+									"        \"price\": { \"type\": \"number\" },\r",
+									"        \"sku\": { \"type\": \"number\" },\r",
+									"        \"description\": { \"type\": \"string\" }\r",
+									"    }\r",
+									"};\r",
+									"pm.test(\"Response matches product schema\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"pm.test(\"Product ID remains the same after update\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(4);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 4,\r\n    \"name\": \"banana\",\r\n    \"price\": 155,\r\n    \"sku\": 123321123,\r\n    \"description\": \"changed description\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update product (negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Returns 404 and 'not found' for unexist product update\", () => {\r",
+									"    const text = pm.response.text();\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);\r",
+									"    pm.expect(text).to.include(\"not found\");\r",
+									"});\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 101,\r\n    \"name\": \"banana\",\r\n    \"price\": 155,\r\n    \"sku\": 123321123,\r\n    \"description\": \"changed description\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Deleted product data is returned correctly\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(4);\r",
+									"    pm.expect(jsonData.name).to.eql(\"banana\");\r",
+									"    pm.expect(jsonData.price).to.eql(155);\r",
+									"    pm.expect(jsonData.sku).to.eql(123321123);\r",
+									"});\r",
+									"pm.test(\"Deleted product fields have correct types\", () => {\r",
+									"    const { id, name, price, sku, description } = pm.response.json();\r",
+									"    pm.expect(id).to.be.a(\"number\");\r",
+									"    pm.expect(name).to.be.a(\"string\");\r",
+									"    pm.expect(price).to.be.a(\"number\");\r",
+									"    pm.expect(sku).to.be.a(\"number\");\r",
+									"    pm.expect(description).to.be.a(\"string\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "List orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"pm.test(\"Response is an array\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"array\");\r",
+									"});\r",
+									"const schema = {\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"name\":{\"type\":\"string\"},\"sku\":{\"type\":\"integer\"}},\"required\":[\"id\",\"name\",\"sku\"]}};\r",
+									"pm.test(\"Schema is valid\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List orders (pagination)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();\r",
+									"const page = pm.variables.get(\"page\");\r",
+									"const pageSize = pm.variables.get(\"pageSize\");\r",
+									"\r",
+									"pm.test(\"Status code is 200 OK\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Pagination returns correct number of items\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.be.at.most(2);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each order has required fields\", () => {\r",
+									"    jsonData.forEach(order => {\r",
+									"        pm.expect(order).to.have.property(\"id\");\r",
+									"        pm.expect(order).to.have.property(\"name\");\r",
+									"        pm.expect(order).to.have.property(\"sku\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each order field has correct type\", () => {\r",
+									"    jsonData.forEach(order => {\r",
+									"        pm.expect(order.id).to.be.a(\"number\");\r",
+									"        pm.expect(order.name).to.be.a(\"string\");\r",
+									"        pm.expect(order.sku).to.be.a(\"number\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"page\", 1);\r",
+									"pm.variables.set(\"pageSize\", 2);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders?page={{page}}&pageSize={{pageSize}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "{{page}}"
+								},
+								{
+									"key": "pageSize",
+									"value": "{{pageSize}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List orders (sort)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const jsonData = pm.response.json();\r",
+									"const sortOrder = pm.variables.get(\"sortOrder\");\r",
+									"const sortKey = pm.variables.get(\"sortKey\");\r",
+									"\r",
+									"pm.test(\"Status code is 200 OK\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response contains a list of orders\", () => {\r",
+									"    pm.expect(jsonData).to.be.an(\"array\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each order has required fields\", () => {\r",
+									"    jsonData.forEach(order => {\r",
+									"        pm.expect(order).to.have.property(\"id\");\r",
+									"        pm.expect(order).to.have.property(\"name\");\r",
+									"        pm.expect(order).to.have.property(\"sku\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Each order field has correct type\", () => {\r",
+									"    jsonData.forEach(order => {\r",
+									"        pm.expect(order.id).to.be.a(\"number\");\r",
+									"        pm.expect(order.name).to.be.a(\"string\");\r",
+									"        pm.expect(order.sku).to.be.a(\"number\");\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test(`Orders are sorted by ${sortKey} in ${sortOrder} order`, () => {\r",
+									"    const values = jsonData.map(o => o[sortKey]);\r",
+									"    const sorted = [...values].sort();\r",
+									"    if (sortOrder === \"DESC\") sorted.reverse();\r",
+									"    pm.expect(values).to.eql(sorted);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"sortOrder\", \"ASC\");\r",
+									"pm.variables.set(\"sortKey\", \"name\");"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders?sortOrder={{sortOrder}}&sortKey={{sortKey}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "{{sortOrder}}"
+								},
+								{
+									"key": "sortKey",
+									"value": "{{sortKey}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Response is an object\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"});\r",
+									"pm.test(\"Order contains required fields\", () => {\r",
+									"    const product = pm.response.json();\r",
+									"    pm.expect(product).to.have.keys([\"id\", \"name\", \"sku\"]);\r",
+									"});\r",
+									"pm.test(\"Returned ID matches requested ID\", () => {\r",
+									"    const requestedId = Number(pm.request.url.variables.get(\"id\") || pm.request.url.path[pm.request.url.path.length-1]);\r",
+									"    const responseId = pm.response.json().id;\r",
+									"    pm.expect(responseId).to.eql(requestedId);\r",
+									"});\r",
+									"const schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"required\": [\"id\", \"name\", \"sku\"],\r",
+									"    \"properties\": {\r",
+									"        \"id\": { \"type\": \"number\" },\r",
+									"        \"name\": { \"type\": \"string\" },\r",
+									"        \"sku\": { \"type\": \"number\" }\r",
+									"    }\r",
+									"};\r",
+									"pm.test(\"Response matches order schema\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get order by ID (negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 4xx\", () => {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]); \r",
+									"});\r",
+									"pm.test(\"Returns empty object for non-existent product\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(0);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Response time is less than 100ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(100);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\",() => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"const jsonData = pm.response.json();\r",
+									"pm.test(\"Response contains correct data fields\", () => {      \r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"    pm.expect(jsonData.id).to.be.a(\"number\");\r",
+									"    pm.expect(jsonData.name).to.be.a(\"string\");\r",
+									"    pm.expect(jsonData.sku).to.be.a(\"number\");     \r",
+									"});\r",
+									"pm.test(\"Created product has unique ID\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.exist;\r",
+									"    pm.expect(jsonData.id).to.be.above(0);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"order5\",\r\n    \"sku\": 123425445656765\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Response is an object\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"object\");\r",
+									"});\r",
+									"pm.test(\"Order data is updated correctly\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.name).to.eql(\"order5\");\r",
+									"    pm.expect(jsonData.sku).to.eql(123425445656765);\r",
+									"});\r",
+									"const schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"required\": [\"id\", \"name\", \"sku\"],\r",
+									"    \"properties\": {\r",
+									"        \"id\": { \"type\": \"number\" },\r",
+									"        \"name\": { \"type\": \"string\" },\r",
+									"        \"sku\": { \"type\": \"number\" }\r",
+									"    }\r",
+									"};\r",
+									"pm.test(\"Response matches product schema\", () => {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"pm.test(\"Product ID remains the same after update\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(4);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 4,\r\n    \"name\": \"order5\",\r\n    \"sku\": 123425445656765\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Deleted order data is returned correctly\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(4);\r",
+									"    pm.expect(jsonData.name).to.eql(\"order5\");\r",
+									"    pm.expect(jsonData.sku).to.eql(123425445656765);\r",
+									"});\r",
+									"pm.test(\"Deleted product fields have correct types\", () => {\r",
+									"    const { id, name, sku } = pm.response.json();\r",
+									"    pm.expect(id).to.be.a(\"number\");\r",
+									"    pm.expect(name).to.be.a(\"string\");\r",
+									"    pm.expect(sku).to.be.a(\"number\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "List users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"pm.test(\"Response is an array\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an(\"array\");\r",
+									"});\r",
+									"const schema = {\r",
+									"  \"type\": \"array\",\r",
+									"  \"items\": {\r",
+									"    \"type\": \"object\",\r",
+									"    \"properties\": {\r",
+									"      \"id\": {\r",
+									"        \"type\": \"integer\"\r",
+									"      },\r",
+									"      \"firstName\": {\r",
+									"        \"type\": \"string\"\r",
+									"      },\r",
+									"      \"lastName\": {\r",
+									"        \"type\": \"string\",\r",
+									"        \"enum\": [\r",
+									"          \"Mask\",\r",
+									"          \"Smith\",\r",
+									"          \"kukareku\",\r",
+									"          \"asd\",\r",
+									"          \"Real\"\r",
+									"        ]\r",
+									"      },\r",
+									"      \"email\": {\r",
+									"        \"type\": \"string\"\r",
+									"      },\r",
+									"      \"dateOfBirth\": {\r",
+									"        \"type\": \"string\",\r",
+									"        \"enum\": [\r",
+									"          \"2001-10-99\",\r",
+									"          \"1997-10-31\"\r",
+									"        ]\r",
+									"      },\r",
+									"      \"emailVerified\": {\r",
+									"        \"type\": \"boolean\"\r",
+									"      },\r",
+									"      \"signUpDate\": {\r",
+									"        \"type\": \"string\",\r",
+									"        \"enum\": [\r",
+									"          \"2019-08-24\"\r",
+									"        ]\r",
+									"      },\r",
+									"      \"status\": {\r",
+									"        \"type\": \"string\",\r",
+									"        \"enum\": [\r",
+									"          \"active\"\r",
+									"        ]\r",
+									"      },\r",
+									"      \"level\": {\r",
+									"        \"type\": \"string\",\r",
+									"        \"enum\": [\r",
+									"          \"lord\",\r",
+									"          \"consumer\"\r",
+									"        ]\r",
+									"      }\r",
+									"    },\r",
+									"    \"required\": [\r",
+									"      \"id\",\r",
+									"      \"firstName\",\r",
+									"      \"lastName\",\r",
+									"      \"email\",\r",
+									"      \"dateOfBirth\",\r",
+									"      \"emailVerified\",\r",
+									"      \"signUpDate\",\r",
+									"      \"status\",\r",
+									"      \"level\"\r",
+									"    ]\r",
+									"  }\r",
+									"};\r",
+									"pm.test(\"Schema is valid\", function () {\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List users sort",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Content-Type is present\", () => {\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"});\r",
+									"pm.test(\"Users are sorted by firstName ascending\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const firstNames = jsonData.map(u => u.firstName);\r",
+									"    const sorted = [...firstNames].sort();\r",
+									"    pm.expect(firstNames).to.eql(sorted);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users?sortOrder=ASC&sortKey=firstName",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "sortOrder",
+									"value": "ASC"
+								},
+								{
+									"key": "sortKey",
+									"value": "firstName"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201 - user created\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});\r",
+									"pm.test(\"Response is valid JSON\", () => {\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"pm.test(\"Response contains all required user fields\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const expectedFields = [\r",
+									"        \"id\", \"firstName\", \"lastName\", \"email\", \r",
+									"        \"dateOfBirth\", \"emailVerified\", \r",
+									"        \"signUpDate\", \"status\", \"level\"\r",
+									"    ];\r",
+									"    expectedFields.forEach(field => pm.expect(jsonData).to.have.property(field));\r",
+									"});\r",
+									"pm.test(\"User fields have correct types\", () => {\r",
+									"    const { id, firstName, lastName, email, dateOfBirth, emailVerified, signUpDate, status, level } = pm.response.json();\r",
+									"    pm.expect(id).to.be.a(\"number\");\r",
+									"    pm.expect(firstName).to.be.a(\"string\");\r",
+									"    pm.expect(lastName).to.be.a(\"string\");\r",
+									"    pm.expect(email).to.be.a(\"string\");\r",
+									"    pm.expect(dateOfBirth).to.be.a(\"string\");\r",
+									"    pm.expect(emailVerified).to.be.a(\"boolean\");\r",
+									"    pm.expect(signUpDate).to.be.a(\"string\");\r",
+									"    pm.expect(status).to.be.a(\"string\");\r",
+									"    pm.expect(level).to.be.a(\"string\");\r",
+									"});\r",
+									"pm.test(\"Created user data matches request body\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.firstName).to.eql(\"Dream\");\r",
+									"    pm.expect(jsonData.lastName).to.eql(\"Real\");\r",
+									"    pm.expect(jsonData.email).to.eql(\"dream.real@gmail.com\");\r",
+									"    pm.expect(jsonData.status).to.eql(\"active\");\r",
+									"    pm.expect(jsonData.level).to.eql(\"lord\");\r",
+									"});\r",
+									"pm.test(\"User ID is auto-generated\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.be.above(0);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Dream\",\r\n    \"lastName\": \"Real\",\r\n    \"email\": \"dream.real@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-99\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Response is valid JSON\", () => {\r",
+									"    pm.response.to.be.withBody;\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"pm.test(\"Response contains all required user fields\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    const expectedFields = [\r",
+									"        \"id\", \"firstName\", \"lastName\", \"email\", \r",
+									"        \"dateOfBirth\", \"emailVerified\", \r",
+									"        \"signUpDate\", \"status\", \"level\"\r",
+									"    ];\r",
+									"    expectedFields.forEach(field => pm.expect(jsonData).to.have.property(field));\r",
+									"});\r",
+									"pm.test(\"User fields have correct types\", () => {\r",
+									"    const { id, firstName, lastName, email, dateOfBirth, emailVerified, signUpDate, status, level } = pm.response.json();\r",
+									"    pm.expect(id).to.be.a(\"number\");\r",
+									"    pm.expect(firstName).to.be.a(\"string\");\r",
+									"    pm.expect(lastName).to.be.a(\"string\");\r",
+									"    pm.expect(email).to.be.a(\"string\");\r",
+									"    pm.expect(dateOfBirth).to.be.a(\"string\");\r",
+									"    pm.expect(emailVerified).to.be.a(\"boolean\");\r",
+									"    pm.expect(signUpDate).to.be.a(\"string\");\r",
+									"    pm.expect(status).to.be.a(\"string\");\r",
+									"    pm.expect(level).to.be.a(\"string\");\r",
+									"});\r",
+									"pm.test(\"Updated user data matches request body\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.firstName).to.eql(\"Ilon\");\r",
+									"    pm.expect(jsonData.lastName).to.eql(\"Mask\");\r",
+									"    pm.expect(jsonData.email).to.eql(\"ilon.mask@gmail.com\");\r",
+									"    pm.expect(jsonData.status).to.eql(\"active\");\r",
+									"    pm.expect(jsonData.level).to.eql(\"lord\");\r",
+									"});\r",
+									"pm.test(\"User ID remains the same after update\", () => {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.id).to.eql(1);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Ilon\",\r\n    \"lastName\": \"Mask\",\r\n    \"email\": \"ilon.mask@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-99\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\",\r\n    \"id\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove user by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is in JSON format\", () => {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Deleted user details are returned in response\", () => {\r",
+									"    const res = pm.response.json();\r",
+									"    pm.expect(res).to.have.property(\"id\", 10);\r",
+									"    pm.expect(res).to.have.property(\"firstName\", \"Dream\");\r",
+									"    pm.expect(res).to.have.property(\"lastName\", \"Real\");\r",
+									"    pm.expect(res).to.have.property(\"email\", \"dream.real@gmail.com\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"User fields have correct data types\", () => {\r",
+									"    const res = pm.response.json();\r",
+									"    pm.expect(res.id).to.be.a(\"number\");\r",
+									"    pm.expect(res.firstName).to.be.a(\"string\");\r",
+									"    pm.expect(res.lastName).to.be.a(\"string\");\r",
+									"    pm.expect(res.email).to.be.a(\"string\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"10"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get user by ID (negative - after delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404 when user not found\", () => {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});\r",
+									"pm.test(\"Response is in JSON format\", () => {\r",
+									"    pm.response.to.be.json;\r",
+									"});\r",
+									"pm.test(\"Response does not contain user fields\", () => {\r",
+									"    const res = pm.response.json();\r",
+									"    pm.expect(res).to.not.have.property(\"firstName\");\r",
+									"    pm.expect(res).to.not.have.property(\"lastName\");\r",
+									"});\r",
+									"pm.test(\"Response time is less than 200ms\", () => {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"10"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000"
+		}
+	]
+}
