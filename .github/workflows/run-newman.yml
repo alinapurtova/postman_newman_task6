@@ -36,3 +36,4 @@ jobs:
           publish_branch: newman-report
           publish_dir: .
           keep_files: false
+          force_orphan: true
