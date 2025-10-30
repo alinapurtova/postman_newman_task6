@@ -48,7 +48,7 @@ Similar routes are available for /users and /orders.
 
 ### 1. Import collection
 Open **Postman** and import the file:
-store.collection.json
+store.postman_collection.json
 
 ### 2. Run and review tests
 Run the requests and check the tests that verify:
@@ -68,14 +68,13 @@ Run the Postman collection with **Newman**:
 npm run test-newman
 ```
 
-The test results will be generated as an **HTML report**, renamed to index.html.
+The test results will be generated as an **HTML report**, saved to reports/index.html.
 
 ## GitHub Actions Integration
 
 This project includes a **GitHub Actions** workflow that:
 
-- Runs Newman tests automatically on push to the `main` branch  
+- Runs Newman tests automatically on push to the main branch  
 - Generates an HTML report  
-- Renames the report to `index.html`  
 - Pushes it to the `newman-report` branch  
 - Publishes the result to **GitHub Pages**
